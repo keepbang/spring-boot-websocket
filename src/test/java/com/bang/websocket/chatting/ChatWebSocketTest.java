@@ -1,18 +1,14 @@
 package com.bang.websocket.chatting;
 
-import com.bang.websocket.dto.RequestDto;
-import org.json.JSONObject;
+import com.bang.websocket.dto.RequestMessage;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.messaging.converter.MappingJackson2MessageConverter;
-import org.springframework.messaging.converter.StringMessageConverter;
 import org.springframework.messaging.simp.stomp.StompFrameHandler;
 import org.springframework.messaging.simp.stomp.StompHeaders;
 import org.springframework.messaging.simp.stomp.StompSession;
 import org.springframework.messaging.simp.stomp.StompSessionHandlerAdapter;
-import org.springframework.util.MimeType;
-import org.springframework.util.MimeTypeUtils;
 import org.springframework.web.socket.client.standard.StandardWebSocketClient;
 import org.springframework.web.socket.messaging.WebSocketStompClient;
 import org.springframework.web.socket.sockjs.client.SockJsClient;
@@ -35,12 +31,12 @@ public class ChatWebSocketTest {
     @Test
     public void WebSocketConnectionTest() throws Exception {
         String webSocketUrl = "ws://localhost:" + port + "/ws/chat/connection";
-        BlockingQueue<RequestDto> blockingQueue = new LinkedBlockingQueue<>();
+        BlockingQueue<RequestMessage> blockingQueue = new LinkedBlockingQueue<>();
         long senderId = 1L;
         long receiverId = 2L;
         long roomId = 1L;
         String message = "hello~~";
-        RequestDto requestDto = new RequestDto(senderId, receiverId, roomId, message);
+        RequestMessage requestMessage = new RequestMessage(senderId, receiverId, roomId, message);
 
         // webSocket client 생성 & setting
         WebSocketStompClient client = WebSocket_생성();
@@ -53,22 +49,22 @@ public class ChatWebSocketTest {
         session.subscribe("/sub/room/" + roomId, new StompFrameHandler() {
             @Override
             public Type getPayloadType(StompHeaders headers) {
-                return RequestDto.class;
+                return RequestMessage.class;
             }
 
             @Override
             public void handleFrame(StompHeaders headers, Object payload) {
-                blockingQueue.offer((RequestDto) payload);
+                blockingQueue.offer((RequestMessage) payload);
             }
         });
 
         StompHeaders headers = new StompHeaders();
         headers.setDestination("/pub/send");
-        session.send(headers, requestDto);
+        session.send(headers, requestMessage);
 
-        RequestDto response = blockingQueue.poll(5, TimeUnit.SECONDS);
+        RequestMessage response = blockingQueue.poll(5, TimeUnit.SECONDS);
 
-        assertThat(response).isEqualTo(requestDto);
+        assertThat(response).isEqualTo(requestMessage);
     }
 
     private WebSocketStompClient WebSocket_생성() {

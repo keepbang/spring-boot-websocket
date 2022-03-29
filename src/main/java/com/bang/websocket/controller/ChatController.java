@@ -1,6 +1,6 @@
 package com.bang.websocket.controller;
 
-import com.bang.websocket.dto.RequestDto;
+import com.bang.websocket.dto.RequestMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.handler.annotation.MessageMapping;
@@ -15,9 +15,9 @@ public class ChatController {
     private final SimpMessagingTemplate simpMessagingTemplate;
 
     @MessageMapping("/send")
-    public void receive(RequestDto requestDto) {
-        log.info("receive chatting message : {}", requestDto.toString());
-        simpMessagingTemplate.convertAndSend("/sub/room/" + requestDto.getRoomId(), requestDto);
+    public void send(RequestMessage requestMessage) {
+        log.info("receive chatting message : {}", requestMessage.toString());
+        simpMessagingTemplate.convertAndSend("/sub/room/" + requestMessage.getRoomId(), requestMessage);
     }
 
 
